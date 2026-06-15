@@ -1,0 +1,66 @@
+{
+  "name": "oxygene",
+  "version": "11.4.0",
+  "description": "Oxygène - Breathe Freely. The Fortress for Your Digital Life.",
+  "author": "GrapeFruit Team",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "npx electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^26.2.0",
+    "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^8.3.0",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/splash-screen": "^8.0.1",
+    "discord-rpc": "^4.0.1",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2",
+    "ws": "^8.18.3"
+  },
+  "build": {
+    "appId": "com.grfruit.purplify",
+    "productName": "Oxygène",
+    "files": [
+      "main.js",
+      "offline.html",
+      "preload.js",
+      "package.json",
+      "img/**/*"
+    ],
+    "asar": true,
+    "directories": {
+      "buildResources": "img"
+    },
+    "win": {
+      "icon": "img/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Oxygène"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://oxygene.grfruit.ru/updates/"
+      }
+    ]
+  }
+}

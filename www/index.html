@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Oxygène</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1E90FF;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<iframe src="https://oxygene.grfruit.ru/mobile"></iframe>
+
+<script type="module">
+    import { StatusBar, Style } from '@capacitor/status-bar';
+
+    StatusBar.setBackgroundColor({ color: '#1E90FF' });
+    StatusBar.setStyle({ style: Style.Light });
+</script>
+</body>
+</html>
