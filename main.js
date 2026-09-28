@@ -3,7 +3,6 @@ const path = require('path');
 const RPC = require('discord-rpc');
 const electronLog = require('electron-log');
 
-// Пытаемся загрузить автообновление, если доступно
 let autoUpdater;
 try {
   const updater = require('electron-updater');
@@ -13,25 +12,29 @@ try {
   autoUpdater = null;
 }
 
-const clientId = '1429230863614349362';
+const clientId = ' ';
 RPC.register(clientId);
+
+app.userAgentFallback =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
 
 let rpc;
 let startTimestamp = new Date();
 let mainWindow;
 
-function isOnline() {
+function pingOnce() {
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      resolve(false);
-    }, 3000);
+    const timeout = setTimeout(() => resolve(false), 8000);
     const request = net.request({
-      method: 'HEAD',
-      url: 'https://oxygene.grfruit.ru',
+      method: 'GET',
+      url: 'https://oxygene.grfruit.ru/favicon.ico',
     });
-    request.on('response', () => {
+    request.on('response', (res) => {
       clearTimeout(timeout);
-      resolve(true);
+      resolve(res.statusCode < 500);
     });
     request.on('error', () => {
       clearTimeout(timeout);
@@ -39,6 +42,15 @@ function isOnline() {
     });
     request.end();
   });
+}
+
+async function isOnline(retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    const ok = await pingOnce();
+    if (ok) return true;
+    if (i < retries) await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
 }
 
 async function createWindow() {
@@ -58,7 +70,11 @@ async function createWindow() {
 
   mainWindow.setMenu(null);
 
-  // Автоматически разрешаем уведомления для нашего домена (чтобы не спрашивать)
+  mainWindow.webContents.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+    '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+  );
+
   mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
     const url = webContents.getURL();
     if (permission === 'notifications' && url.startsWith('https://oxygene.grfruit.ru')) {
@@ -69,7 +85,7 @@ async function createWindow() {
   });
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
-    if ((input.key.toLowerCase() === 'r' && input.control)) {
+    if (input.key.toLowerCase() === 'r' && input.control) {
       event.preventDefault();
       mainWindow.reload();
     }
@@ -99,9 +115,13 @@ async function createWindow() {
 
 async function loadPage(online) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
+
   const currentURL = mainWindow.webContents.getURL();
 
-  if (online && (!currentURL.includes('auth.html') && !currentURL.includes('oxygene.grfruit.ru'))) {
+  if (online && currentURL.includes('oxygene.grfruit.ru')) return;
+  if (!online && currentURL.endsWith('offline.html')) return;
+
+  if (online) {
     try {
       await mainWindow.loadURL('https://oxygene.grfruit.ru/clientapp/auth.html', {
         extraHeaders: 'X-From-Electron: true',
@@ -110,16 +130,23 @@ async function loadPage(online) {
     } catch (error) {
       console.error('Error loading site:', error);
     }
-  } else if (!online && !currentURL.endsWith('offline.html')) {
+  } else {
     mainWindow.loadFile(path.join(__dirname, 'offline.html'));
   }
 }
 
 function startNetworkWatcher() {
+  let consecutiveFails = 0;
   setInterval(async () => {
     const online = await isOnline();
-    loadPage(online);
-  }, 15000);
+    if (!online) {
+      consecutiveFails++;
+      if (consecutiveFails >= 3) loadPage(false);
+    } else {
+      consecutiveFails = 0;
+      loadPage(true);
+    }
+  }, 30000);
 }
 
 function setupNavigationProtection(allowedHost) {
@@ -230,14 +257,17 @@ app.on('activate', () => {
 });
 
 app.on('web-contents-created', (event, contents) => {
-  contents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+  contents.on('did-fail-load', async (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
     console.error(`Error loading: ${validatedURL}:`, errorDescription);
-    if (validatedURL.includes('oxygene.grfruit.ru') && mainWindow && !mainWindow.isDestroyed()) {
-      setTimeout(async () => {
-        if (!(await isOnline())) {
-          mainWindow.loadFile(path.join(__dirname, 'offline.html'));
-        }
-      }, 1000);
-    }
+
+    if (!isMainFrame) return;
+    if (errorCode === -3) return;
+    if (!validatedURL.includes('oxygene.grfruit.ru')) return;
+
+    setTimeout(async () => {
+      if (!(await isOnline()) && mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.loadFile(path.join(__dirname, 'offline.html'));
+      }
+    }, 2000);
   });
 });
