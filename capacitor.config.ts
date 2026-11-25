@@ -5,13 +5,14 @@ const config: CapacitorConfig = {
   appName: 'Oxygène',
   webDir: 'www',
   bundledWebRuntime: false,
-
   server: {
+    // Загружает сайт непосредственно в WKWebView / Android WebView,
+    // а не во вложенном iframe.
     url: 'https://oxygene.grfruit.ru/mobile',
     cleartext: false,
-    androidScheme: 'https'
+    androidScheme: 'https',
+    allowNavigation: ['oxygene.grfruit.ru']
   },
-
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
