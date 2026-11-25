@@ -1,9 +1,11 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Oxygène</title>
+
     <style>
         html, body {
             margin: 0;
@@ -13,26 +15,35 @@
             overflow: hidden;
             background: #1E90FF;
         }
+
+        iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
 
+<iframe src="https://oxygene.grfruit.ru/mobile"></iframe>
+
 <script type="module">
     import { StatusBar, Style } from '@capacitor/status-bar';
 
-    async function startApp() {
+    async function configureStatusBar() {
         try {
             await StatusBar.setOverlaysWebView({ overlay: false });
+            await StatusBar.setBackgroundColor({ color: '#1E90FF' });
             await StatusBar.setStyle({ style: Style.Light });
-        } catch (e) {
-            console.warn('StatusBar:', e);
+        } catch (error) {
+            console.error('StatusBar error:', error);
         }
-
-        window.location.replace('https://oxygene.grfruit.ru/mobile');
     }
 
-    startApp();
+    configureStatusBar();
 </script>
 
 </body>
 </html>
+```
