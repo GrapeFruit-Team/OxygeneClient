@@ -9,11 +9,11 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#1E90FF",
+      backgroundColor: "#0d0d0d",
       showSpinner: true,
       androidSpinnerStyle: "large",
       iosSpinnerStyle: "small",
-      spinnerColor: "#1E90FF"
+      spinnerColor: "#0d0d0d"
     }
   },
   server: {
