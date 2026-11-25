@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.grfruit.oxygene"
+    namespace = "com.grfruit.purplify"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.grfruit.oxygene"
+        applicationId "com.grfruit.purplify"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "11.3"
+        versionName "11.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

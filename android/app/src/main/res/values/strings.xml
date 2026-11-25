@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Oxygène</string>
     <string name="title_activity_main">Oxygène</string>
-    <string name="package_name">com.grfruit.oxygene</string>
-    <string name="custom_url_scheme">com.grfruit.oxygene</string>
+    <string name="package_name">com.grfruit.purplify</string>
+    <string name="custom_url_scheme">com.grfruit.purplify</string>
 </resources>

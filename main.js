@@ -3,35 +3,37 @@ const path = require('path');
 const RPC = require('discord-rpc');
 const electronLog = require('electron-log');
 
-// Пытаемся загрузить автообновление, если доступно
 let autoUpdater;
 try {
   const updater = require('electron-updater');
   autoUpdater = updater.autoUpdater;
 } catch (e) {
-  console.warn('electron-updater не найден, автообновление отключено');
   autoUpdater = null;
 }
 
-const clientId = '1429230863614349362';
+const clientId = ' ';
 RPC.register(clientId);
+
+app.userAgentFallback =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
 
 let rpc;
 let startTimestamp = new Date();
 let mainWindow;
 
-function isOnline() {
+function pingOnce() {
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      resolve(false);
-    }, 3000);
+    const timeout = setTimeout(() => resolve(false), 5000);
     const request = net.request({
-      method: 'HEAD',
-      url: 'https://oxygene.grfruit.ru',
+      method: 'GET',
+      url: 'https://oxygene.grfruit.ru/favicon.ico',
     });
-    request.on('response', () => {
+    request.on('response', (res) => {
       clearTimeout(timeout);
-      resolve(true);
+      resolve(res.statusCode < 500);
     });
     request.on('error', () => {
       clearTimeout(timeout);
@@ -45,6 +47,8 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1340,
     height: 770,
+    minWidth: 400,
+    minHeight: 515,
     icon: path.join(__dirname, 'img', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -58,7 +62,11 @@ async function createWindow() {
 
   mainWindow.setMenu(null);
 
-  // Автоматически разрешаем уведомления для нашего домена (чтобы не спрашивать)
+  mainWindow.webContents.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+    '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+  );
+
   mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
     const url = webContents.getURL();
     if (permission === 'notifications' && url.startsWith('https://oxygene.grfruit.ru')) {
@@ -69,57 +77,36 @@ async function createWindow() {
   });
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
-    if ((input.key.toLowerCase() === 'r' && input.control)) {
+    if (input.key.toLowerCase() === 'r' && input.control) {
       event.preventDefault();
       mainWindow.reload();
     }
-    if (input.key === 'F12') {
-      event.preventDefault();
-      if (mainWindow.webContents.isDevToolsOpened()) {
-        mainWindow.webContents.closeDevTools();
-      } else {
-        mainWindow.webContents.openDevTools();
-      }
-    }
+    // if (input.key === 'F12') {
+    //   event.preventDefault();
+    //   if (mainWindow.webContents.isDevToolsOpened()) {
+    //     mainWindow.webContents.closeDevTools();
+    //   } else {
+    //     mainWindow.webContents.openDevTools();
+    //   }
+    // }
   });
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'offline.html'));
+  setupNavigationProtection('oxygene.grfruit.ru');
 
-  setTimeout(async () => {
-    const online = await isOnline();
-    loadPage(online);
-  }, 500);
-
-  setupDiscordRPC();
-}
-
-async function loadPage(online) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  const currentURL = mainWindow.webContents.getURL();
-
-  if (online && (!currentURL.includes('auth.html') && !currentURL.includes('oxygene.grfruit.ru'))) {
-    try {
-      await mainWindow.loadURL('https://oxygene.grfruit.ru/clientapp/auth.html', {
-        extraHeaders: 'X-From-Electron: true',
-      });
-      setupNavigationProtection('oxygene.grfruit.ru');
-    } catch (error) {
-      console.error('Error loading site:', error);
-    }
-  } else if (!online && !currentURL.endsWith('offline.html')) {
+  const online = await pingOnce();
+  if (online) {
+    mainWindow.loadURL('https://oxygene.grfruit.ru/clientapp/auth.html', {
+      extraHeaders: 'X-From-Electron: true',
+    });
+  } else {
     mainWindow.loadFile(path.join(__dirname, 'offline.html'));
   }
-}
 
-function startNetworkWatcher() {
-  setInterval(async () => {
-    const online = await isOnline();
-    loadPage(online);
-  }, 15000);
+  setupDiscordRPC();
 }
 
 function setupNavigationProtection(allowedHost) {
@@ -152,7 +139,6 @@ function setupNavigationProtection(allowedHost) {
 function setupDiscordRPC() {
   rpc = new RPC.Client({ transport: 'ipc' });
   rpc.on('ready', () => {
-    console.log('Discord RPC ready!');
     rpc.clearActivity().catch(console.error);
   });
   rpc.login({ clientId }).catch(console.error);
@@ -183,25 +169,13 @@ function setupAutoUpdater() {
   try {
     autoUpdater.logger = electronLog;
     autoUpdater.logger.transports.file.level = 'info';
-    electronLog.info('Checking for update...');
     autoUpdater.autoDownload = true;
     autoUpdater.allowDowngrade = false;
     autoUpdater.disableWebInstaller = true;
     autoUpdater.fullChangelog = true;
     autoUpdater.checkForUpdates();
 
-    autoUpdater.on('checking-for-update', () => electronLog.info('Checking for update...'));
-    autoUpdater.on('update-available', (info) => electronLog.info('Update available:', info.version));
-    autoUpdater.on('update-not-available', () => electronLog.info('No updates available'));
-    autoUpdater.on('error', (err) => {
-      electronLog.error('Update error:', err);
-      console.error('Update error:', err);
-    });
-    autoUpdater.on('download-progress', (progress) => {
-      electronLog.info(`Download progress: ${Math.round(progress.percent)}%`);
-    });
     autoUpdater.on('update-downloaded', (info) => {
-      electronLog.info('Update downloaded, installing...');
       dialog.showMessageBox({
         type: 'info',
         title: 'Доступно обновление',
@@ -210,15 +184,12 @@ function setupAutoUpdater() {
         setImmediate(() => autoUpdater.quitAndInstall(true, true));
       });
     });
-  } catch (e) {
-    console.error('Ошибка инициализации автообновления:', e);
-  }
+  } catch (e) {}
 }
 
 app.whenReady().then(() => {
   createWindow();
   setupAutoUpdater();
-  startNetworkWatcher();
 });
 
 app.on('window-all-closed', () => {
@@ -227,17 +198,4 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
-});
-
-app.on('web-contents-created', (event, contents) => {
-  contents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-    console.error(`Error loading: ${validatedURL}:`, errorDescription);
-    if (validatedURL.includes('oxygene.grfruit.ru') && mainWindow && !mainWindow.isDestroyed()) {
-      setTimeout(async () => {
-        if (!(await isOnline())) {
-          mainWindow.loadFile(path.join(__dirname, 'offline.html'));
-        }
-      }, 1000);
-    }
-  });
 });

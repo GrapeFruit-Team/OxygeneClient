@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.grfruit.oxygene',
+  appId: 'com.grfruit.purplify',
   appName: 'Oxygène',
   webDir: 'www',
   bundledWebRuntime: false,

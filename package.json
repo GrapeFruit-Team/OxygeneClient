@@ -1,6 +1,7 @@
 {
   "name": "oxygene",
-  "version": "11.4.0",
+  "productName": "Oxygène",
+  "version": "11.5.3",
   "description": "Oxygène - Breathe Freely. The Fortress for Your Digital Life.",
   "author": "GrapeFruit Team",
   "main": "main.js",
@@ -16,6 +17,7 @@
     "@capacitor/android": "^8.3.0",
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
+    "@capacitor/ios": "^8.6.2",
     "@capacitor/splash-screen": "^8.0.1",
     "discord-rpc": "^4.0.1",
     "electron-log": "^5.4.3",
@@ -47,6 +49,14 @@
           ]
         }
       ]
+    },
+    "linux": {
+      "icon": "img/icon.png",
+      "target": [
+        "AppImage",
+        "pacman"
+      ],
+      "category": "Audio"
     },
     "nsis": {
       "oneClick": false,

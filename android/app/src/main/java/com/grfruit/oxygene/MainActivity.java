@@ -1,4 +1,4 @@
-package com.grfruit.oxygene;
+package com.grfruit.purplify;
 
 import com.getcapacitor.BridgeActivity;
 
