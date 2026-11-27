@@ -15,10 +15,6 @@ const config: CapacitorConfig = {
     ]
   },
 
-  ios: {
-    contentInset: 'automatic'
-  },
-
   plugins: {
     SplashScreen: {
       launchShowDuration: 3000,
