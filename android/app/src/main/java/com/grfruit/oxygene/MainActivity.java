@@ -60,13 +60,13 @@ public class MainActivity extends BridgeActivity {
         overlayShownAt = System.currentTimeMillis();
         loadingOverlay.loadUrl("file:///android_asset/public/loading.html");
         handler.postDelayed(this::checkMainPageLoaded, 200);
-        handler.postDelayed(this::removeLoadingOverlay, 25000);
+        handler.postDelayed(this::removeLoadingOverlay, 45000);
     }
 
 
     private void checkMainPageLoaded() {
         if (overlayRemoved || loadingOverlay == null || bridge == null || bridge.getWebView() == null) return;
-        if (bridge.getWebView().getProgress() >= 100 && System.currentTimeMillis() - overlayShownAt >= 1200) {
+        if (bridge.getWebView().getProgress() >= 100 && System.currentTimeMillis() - overlayShownAt >= 3500) {
             removeLoadingOverlay();
             return;
         }

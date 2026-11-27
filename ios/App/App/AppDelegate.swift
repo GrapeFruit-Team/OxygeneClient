@@ -60,7 +60,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         progressObservation = mainWebView.observe(\.estimatedProgress, options: [.new]) { [weak self] webView, _ in
             guard let self, !self.overlayDismissed, webView.estimatedProgress >= 1.0 else { return }
-            let minimumWait: TimeInterval = 1.2
+            let minimumWait: TimeInterval = 3.5
             let elapsed = Date().timeIntervalSince(self.overlayShownAt ?? Date())
             DispatchQueue.main.asyncAfter(deadline: .now() + max(0, minimumWait - elapsed)) {
                 self.hideLoadingOverlay()
@@ -68,11 +68,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         if mainWebView.estimatedProgress >= 1.0 {
             let elapsed = Date().timeIntervalSince(overlayShownAt ?? Date())
-            DispatchQueue.main.asyncAfter(deadline: .now() + max(0, 1.2 - elapsed)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + max(0, 3.5 - elapsed)) {
                 self.hideLoadingOverlay()
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 25) { self.hideLoadingOverlay() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 45) { self.hideLoadingOverlay() }
     }
 
     private func hideLoadingOverlay() {
