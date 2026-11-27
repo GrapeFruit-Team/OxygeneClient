@@ -9,7 +9,7 @@ workflows:
       node: 22
       xcode: latest
       vars:
-        APP_ID: com.grfruit.oxygene
+        APP_ID: com.grfruit.purplify
 
     scripts:
       - name: Install dependencies
